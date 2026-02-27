@@ -11,7 +11,9 @@ import {
   CheckCircle2,
   Calendar,
   User,
-  Briefcase
+  Briefcase,
+  Fingerprint,
+  Mail
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 
@@ -20,27 +22,22 @@ const WHATSAPP_LINK = "https://wa.me/51951160323";
 const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
   const [step, setStep] = React.useState(1);
   const [formData, setFormData] = React.useState({
-    name: '',
-    service: '',
-    message: ''
+    dni: '',
+    date: '',
+    email: ''
   });
-
-  const services = [
-    "Gestión de Patrimonio",
-    "Banca Privada",
-    "Planificación Sucesoria",
-    "Inversiones Internacionales"
-  ];
 
   const handleNext = () => setStep(s => s + 1);
   const handleBack = () => setStep(s => s - 1);
 
   const handleSubmit = () => {
-    const text = `Hola, mi nombre es ${formData.name}. Estoy interesado en el servicio de ${formData.service}. ${formData.message}`;
-    const encodedText = encodeURIComponent(text);
-    window.open(`${WHATSAPP_LINK}?text=${encodedText}`, '_blank');
+    // Simplemente cerramos la ventana como solicitó el usuario
     onClose();
-    setStep(1);
+    // Resetear el estado para la próxima vez
+    setTimeout(() => {
+      setStep(1);
+      setFormData({ dni: '', date: '', email: '' });
+    }, 300);
   };
 
   if (!isOpen) return null;
@@ -80,18 +77,20 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
               >
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
-                    <User size={16} className="text-gold-dark" /> ¿Cómo podemos llamarle?
+                    <Fingerprint size={16} className="text-gold-dark" /> Ingrese su DNI
                   </label>
                   <input 
                     type="text"
-                    placeholder="Su nombre completo"
+                    placeholder="Número de documento"
+                    maxLength={8}
                     className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-gold-accent focus:ring-2 focus:ring-gold-accent/20 outline-none transition-all"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    value={formData.dni}
+                    onChange={(e) => setFormData({ ...formData, dni: e.target.value.replace(/\D/g, '') })}
                   />
+                  <p className="text-[10px] text-slate-400 mt-2 italic">Su información está protegida por nuestras políticas de privacidad.</p>
                 </div>
                 <button 
-                  disabled={!formData.name}
+                  disabled={formData.dni.length < 8}
                   onClick={handleNext}
                   className="w-full bg-gold-accent hover:bg-gold-dark disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
                 >
@@ -108,23 +107,15 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
               >
                 <div>
                   <label className="block text-sm font-medium text-slate-700 mb-4 flex items-center gap-2">
-                    <Briefcase size={16} className="text-gold-dark" /> Servicio de Interés
+                    <Calendar size={16} className="text-gold-dark" /> Seleccione una Fecha
                   </label>
-                  <div className="grid grid-cols-1 gap-3">
-                    {services.map((s) => (
-                      <button
-                        key={s}
-                        onClick={() => setFormData({ ...formData, service: s })}
-                        className={`text-left px-4 py-3 rounded-lg border transition-all ${
-                          formData.service === s 
-                            ? 'border-gold-accent bg-gold-accent/5 text-gold-dark font-medium' 
-                            : 'border-slate-100 hover:border-slate-200 text-slate-600'
-                        }`}
-                      >
-                        {s}
-                      </button>
-                    ))}
-                  </div>
+                  <input 
+                    type="date"
+                    min={new Date().toISOString().split('T')[0]}
+                    className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-gold-accent focus:ring-2 focus:ring-gold-accent/20 outline-none transition-all"
+                    value={formData.date}
+                    onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                  />
                 </div>
                 <div className="flex gap-3">
                   <button 
@@ -134,7 +125,7 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
                     Atrás
                   </button>
                   <button 
-                    disabled={!formData.service}
+                    disabled={!formData.date}
                     onClick={handleNext}
                     className="flex-[2] bg-gold-accent hover:bg-gold-dark disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
                   >
@@ -151,15 +142,17 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
                 className="space-y-6"
               >
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    ¿Desea agregar algún detalle adicional? (Opcional)
+                  <label className="block text-sm font-medium text-slate-700 mb-2 flex items-center gap-2">
+                    <Mail size={16} className="text-gold-dark" /> Correo Electrónico
                   </label>
-                  <textarea 
-                    placeholder="Cuéntenos brevemente su consulta..."
-                    className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-gold-accent focus:ring-2 focus:ring-gold-accent/20 outline-none transition-all h-32 resize-none"
-                    value={formData.message}
-                    onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                  <input 
+                    type="email"
+                    placeholder="ejemplo@correo.com"
+                    className="w-full px-4 py-3 rounded-lg border border-slate-200 focus:border-gold-accent focus:ring-2 focus:ring-gold-accent/20 outline-none transition-all"
+                    value={formData.email}
+                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   />
+                  <p className="text-[10px] text-slate-400 mt-2">Le enviaremos los detalles de su reserva a esta dirección.</p>
                 </div>
                 <div className="flex gap-3">
                   <button 
@@ -169,10 +162,11 @@ const ConsultationModal = ({ isOpen, onClose }: { isOpen: boolean, onClose: () =
                     Atrás
                   </button>
                   <button 
+                    disabled={!formData.email.includes('@')}
                     onClick={handleSubmit}
-                    className="flex-[2] bg-gold-accent hover:bg-gold-dark text-white py-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
+                    className="flex-[2] bg-gold-accent hover:bg-gold-dark disabled:opacity-50 disabled:cursor-not-allowed text-white py-4 rounded-lg font-medium transition-all flex items-center justify-center gap-2"
                   >
-                    Confirmar en WhatsApp <CheckCircle2 size={18} />
+                    Confirmar Reserva <CheckCircle2 size={18} />
                   </button>
                 </div>
               </motion.div>
@@ -229,14 +223,16 @@ const Navbar = ({ onOpenModal }: { onOpenModal: () => void }) => {
           <div className="hidden md:flex items-center space-x-8">
             <a href="#servicios" className="text-sm font-medium text-slate-600 hover:text-gold-accent transition-colors">Servicios</a>
             <a href="#nosotros" className="text-sm font-medium text-slate-600 hover:text-gold-accent transition-colors">Nosotros</a>
-            <a href="#estrategias" className="text-sm font-medium text-slate-600 hover:text-gold-accent transition-colors">Productos</a>
-            <button 
-              onClick={onOpenModal}
+            <a href="#estrategias" className="text-sm font-medium text-slate-600 hover:text-gold-accent transition-colors">Soluciones</a>
+            <a 
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
               className="bg-gold-accent hover:bg-gold-dark text-white px-6 py-2 rounded-full text-sm font-medium transition-all flex items-center gap-2"
             >
-              <Calendar size={16} />
-              Agendar Consulta
-            </button>
+              <MessageCircle size={16} />
+              CONTÁCTENOS
+            </a>
           </div>
 
           <div className="md:hidden">
@@ -252,17 +248,17 @@ const Navbar = ({ onOpenModal }: { onOpenModal: () => void }) => {
         <div className="md:hidden bg-white border-b border-gold-accent/10 px-4 py-6 space-y-4">
           <a href="#servicios" className="block text-lg font-serif text-slate-900">Servicios</a>
           <a href="#nosotros" className="block text-lg font-serif text-slate-900">Nosotros</a>
-          <a href="#estrategias" className="block text-lg font-serif text-slate-900">Productos</a>
-          <button 
-            onClick={() => {
-              onOpenModal();
-              setIsOpen(false);
-            }}
+          <a href="#estrategias" className="block text-lg font-serif text-slate-900">Soluciones</a>
+          <a 
+            href={WHATSAPP_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => setIsOpen(false)}
             className="w-full bg-gold-accent text-white px-6 py-3 rounded-full text-center font-medium flex items-center justify-center gap-2"
           >
-            <Calendar size={20} />
-            Agendar Consulta
-          </button>
+            <MessageCircle size={20} />
+            CONTÁCTENOS
+          </a>
         </div>
       )}
     </nav>
@@ -297,12 +293,12 @@ const Hero = ({ onOpenModal }: { onOpenModal: () => void }) => {
             Proteja y haga crecer su legado con estrategias financieras diseñadas exclusivamente para sus necesidades y objetivos a largo plazo.
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button 
-              onClick={onOpenModal}
+            <a 
+              href="#contacto"
               className="bg-gold-accent hover:bg-gold-dark text-white px-8 py-4 rounded-sm text-lg font-medium transition-all text-center"
             >
-              Agendar Consulta
-            </button>
+              Empezar
+            </a>
             <p className="text-white/50 text-xs self-center sm:self-end mt-2 sm:mt-0 italic">
               Una entidad bancaria regulada por la SBS
             </p>
@@ -562,7 +558,7 @@ const Footer = () => {
             <h5 className="font-serif font-bold text-slate-900 mb-6">Enlaces</h5>
             <ul className="space-y-4 text-sm text-slate-500">
               <li><a href="#" className="hover:text-gold-accent transition-colors">Servicios</a></li>
-              <li><a href="#" className="hover:text-gold-accent transition-colors">Productos</a></li>
+              <li><a href="#" className="hover:text-gold-accent transition-colors">Soluciones</a></li>
               <li><a href="#" className="hover:text-gold-accent transition-colors">Investigación</a></li>
               <li><a href="#" className="hover:text-gold-accent transition-colors">Privacidad</a></li>
             </ul>
